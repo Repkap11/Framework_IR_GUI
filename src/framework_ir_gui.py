@@ -348,7 +348,9 @@ class Window(QMainWindow):
         self.ui.control_reboot.clicked.connect(self.button_reboot_clicked)
         self.ui.control_reboot_bootloader.clicked.connect(self.button_reboot_bootloader_clicked)
 
-        self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E040BF))# power toggle
+        # self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E040BF))# power toggle
+        self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E06798))# my remote
+
         self.ui.button_up.clicked.connect(lambda :self.ir_button_clicked(0xE0E006F9))
         self.ui.button_down.clicked.connect(lambda :self.ir_button_clicked(0xE0E08679))
         self.ui.button_left.clicked.connect(lambda :self.ir_button_clicked(0xE0E0A659))
