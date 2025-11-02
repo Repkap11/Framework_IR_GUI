@@ -300,6 +300,9 @@ class Window(QMainWindow):
         ui.button_left.setEnabled(enabled)
         ui.button_right.setEnabled(enabled)
         ui.button_select.setEnabled(enabled)
+        ui.button_vol_p.setEnabled(enabled)
+        ui.button_vol_m.setEnabled(enabled)
+        ui.button_mute.setEnabled(enabled)
 
     def clearStateFromDisconnect(self) -> None:
         if (self.framework_ir != None):
@@ -352,6 +355,9 @@ class Window(QMainWindow):
         self.ui.button_left.clicked.connect(lambda :self.ir_button_clicked(0xE0E0A659))
         self.ui.button_right.clicked.connect(lambda :self.ir_button_clicked(0xE0E046B9))
         self.ui.button_select.clicked.connect(lambda :self.ir_button_clicked(0xE0E016E9))
+        self.ui.button_vol_m.clicked.connect(lambda :self.ir_button_clicked(0xE0E0D02F))
+        self.ui.button_vol_p.clicked.connect(lambda :self.ir_button_clicked(0xE0E0E01F))
+        self.ui.button_mute.clicked.connect(lambda :self.ir_button_clicked(0xE0E0F00F))
 
     def filename_stm32_fw_edit_finished(self):
         self.updateFlashEnableUiState()
