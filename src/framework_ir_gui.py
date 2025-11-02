@@ -23,7 +23,6 @@ from lib_six15_api.serial_log_watcher import Serial_LogWatcher
 from framework_ir_log_watcher import Framework_IR_LogWatcher
 import framework_ir_six15_api as Six15_API
 from lib_six15_api.logger import Logger, LogLevel, LoggerImpl
-import lib_six15_api.version
 from firmware_update_thread import FPGA_FirmwareUpdateThread
 from thread_debug import DEBUG_THREADS
 import lib_six15_api.stm32_firmware_updater as STM32_Firmware_Update

@@ -5,6 +5,7 @@ autopep8
 pyusb
 pyserial
 pillow
+hidapi
 
 # lib_six15_api @ git+ssh://git@gitlab.com/six15/509/lib_six15_api.git@0.5
 # -e ../../509/lib_six15_api # Develop locally with the library automatically updating without "pip install" again.

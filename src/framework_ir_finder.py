@@ -4,11 +4,7 @@ import time
 from framework_ir import Framework_IR
 from lib_six15_api.six15_api_backend import Six15_API_Backend
 from lib_six15_api.six15_api_backend_hid import Six15_API_Backend_HID
-from lib_six15_api.six15_api_backend_ftdi import Six15_API_Backend_FTDI
 import lib_six15_api.pydfu as PyDfu
-
-if platform.system() != "Windows":
-    from lib_six15_api.six15_api_backend_dev_i2c import Six15_API_Backend_Dev_I2C
 
 import usb.core
 from typing import Optional, Callable
