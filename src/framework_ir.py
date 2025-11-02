@@ -89,6 +89,9 @@ class Framework_IR(Framework_IR_Six15_API):
         verify_ok_str = "OK" if verify_ok else "FAIL"
         Logger.info(f"Verify Result: {verify_ok_str}")
 
+    def send_IR(self, hex_code:int) -> Six15_API.Response_Default:
+        return self.sendSimpleCMD(Six15_API.CMD.SEND_SAMSUNG_IR, struct.pack("<I", hex_code))
+
     def handleArgsNoDevice(args) -> int:
         if (args.sub_command == "version"):
             Logger.info(f"GUI/CLI Version: {AppVersion.GIT_VERSION}")

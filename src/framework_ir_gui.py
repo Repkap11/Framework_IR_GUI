@@ -308,7 +308,7 @@ class Window(QMainWindow):
         self.updateFlashEnableUiState()
         self.ui.progress_bar_fw.setEnabled(False)
         self.ui.progress_bar_fw.setValue(0)
-        self.readAndApplyStateToUI(False)
+        # self.readAndApplyStateToUI(False)
         Window.applyEnabledState(self.ui, False)
 
     def queryStateFromDevice(self) -> None:
@@ -320,9 +320,8 @@ class Window(QMainWindow):
         if (version != None):
             self.ui.label_version_micro_sw_version.setText(f"{version.major}.{version.minor} ({version.git_version})")
 
-
         self.updateFlashEnableUiState()
-        self.readAndApplyStateToUI(True)
+        # self.readAndApplyStateToUI(True)
 
     def openFileNameDialog(self, title: str, name: str, extension: str):
         options: QFileDialog.Option = QFileDialog.Option(0)
@@ -337,19 +336,6 @@ class Window(QMainWindow):
 
         self.ui.pushButton_update_stm32.setEnabled(flashSTM32Enable)
 
-
-    @staticmethod
-    def applyFramework_IR_StateToUi(ui: Main_Window_UI.Ui_Form, framework_ir_state: Optional[Six15_API.Response.Framework_IR_State]):
-        enabled = framework_ir_state != None
-        ui.state_val1.setEnabled(enabled)
-
-        ui.state_val1.setText("N/A")
-
-        if framework_ir_state != None:
-            ui.state_val1.setText(f"{framework_ir_state.val1}")
-
-
-
     def hookEvents(self):
         self.ui.pushButton_clear_log.clicked.connect(self.clear_event_log_clicked)
 
@@ -360,11 +346,12 @@ class Window(QMainWindow):
         self.ui.control_reboot.clicked.connect(self.button_reboot_clicked)
         self.ui.control_reboot_bootloader.clicked.connect(self.button_reboot_bootloader_clicked)
 
-        self.ui.button_up.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
-        self.ui.button_down.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
-        self.ui.button_left.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
-        self.ui.button_right.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
-        self.ui.button_select.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
+        self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E040BF))# power toggle
+        self.ui.button_up.clicked.connect(lambda :self.ir_button_clicked(0xE0E006F9))
+        self.ui.button_down.clicked.connect(lambda :self.ir_button_clicked(0xE0E08679))
+        self.ui.button_left.clicked.connect(lambda :self.ir_button_clicked(0xE0E0A659))
+        self.ui.button_right.clicked.connect(lambda :self.ir_button_clicked(0xE0E046B9))
+        self.ui.button_select.clicked.connect(lambda :self.ir_button_clicked(0xE0E016E9))
 
     def filename_stm32_fw_edit_finished(self):
         self.updateFlashEnableUiState()
@@ -372,11 +359,11 @@ class Window(QMainWindow):
     def filename_fpga_fw_edit_finished(self):
         self.updateFlashEnableUiState()
 
-    def ir_button_clicked(self, hex_code):
+    def ir_button_clicked(self, hex_code:int):
         if (not self.framework_ir):
             Logger.error("Can't send button click, no Framework_IR connected")
             return
-        self.framework_ir.send_IR(1)
+        self.framework_ir.send_IR(hex_code)
 
     ##### End Helper Functions #####
 
@@ -491,25 +478,6 @@ class Window(QMainWindow):
         time.sleep(Framework_IR.REBOOT_TO_DISCONNECT_DELAY_SECONDS)
         self.restartDeviceListenThread()
         self.startLogThread()
-
-    def readAndApplyStateToUI(self, doRead: bool):
-        if doRead and self.framework_ir != None:
-            self.framework_ir_state = self.framework_ir.queryFramework_IR_State()
-        else:
-            self.framework_ir_state = None
-
-        Window.applyFramework_IR_StateToUi(self.ui, self.framework_ir_state)
-
-
-    def read_from_hardware_clicked(self):
-        if (not self.framework_ir):
-            Logger.error("Can't Read from hardware, no Framework_IR connected")
-            return
-
-        self.readAndApplyStateToUI(False)
-        # Show that the UI was cleared so it's clear that something changed.
-        QApplication.processEvents()
-        self.readAndApplyStateToUI(True)
 
     ##### END UI Event Handlers #####
 

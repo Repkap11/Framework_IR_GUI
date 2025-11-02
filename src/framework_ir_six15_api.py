@@ -87,9 +87,9 @@ class CMD:
         value = 0x05
         response = Response.SerialNumber
 
-    class FRAMEWORK_IR_STATE(Base_CMD):
+    class SEND_SAMSUNG_IR(Base_CMD):
         value = 0x06
-        response = Response.Framework_IR_State
+        response = Response_Default
 
 
 
