@@ -28,8 +28,7 @@ from firmware_update_thread import FPGA_FirmwareUpdateThread
 from thread_debug import DEBUG_THREADS
 import lib_six15_api.stm32_firmware_updater as STM32_Firmware_Update
 
-APPLICATION_NAME: str = "Framework_IR 2k"
-
+APPLICATION_NAME: str = "Framework_IR"
 
 class Window(QMainWindow):
     ui: Main_Window_UI.Ui_Form
@@ -40,11 +39,9 @@ class Window(QMainWindow):
     any_update_state_in_progress: bool = False
 
     event_log_lines: str = ""
-    event_log_selected_bay_number: Optional[int] = None
 
-    settings: QSettings = QSettings(QSettings.Scope.UserScope, "Six15", APPLICATION_NAME)
+    settings: QSettings = QSettings(QSettings.Scope.UserScope, "RepTech", APPLICATION_NAME)
     SETTING_STM32_FW_FILE_NAME: str = "stm32_fw_file_name"
-    SETTING_FPGA_FW_FILE_NAME: str = "fpga_fw_file_name"
 
     ##### Start Class Override Functions #####
 
@@ -84,7 +81,7 @@ class Window(QMainWindow):
         url_path = url.toLocalFile()
         if (url_path == None):
             return None
-        if not url_path.endswith((".dfu", ".jed")):
+        if not url_path.endswith((".dfu")):
             return None
         return url_path
 
@@ -98,22 +95,9 @@ class Window(QMainWindow):
     def dropEvent(self, event: QDropEvent):
         fileName = Window.validateDragEvent(event)
         if fileName != None:
-            if fileName.endswith(".jed"):
-                self.ui.lineEdit_fpga_fw_file_name.setText(fileName)
             if fileName.endswith(".dfu"):
                 self.ui.lineEdit_stm32_fw_file_name.setText(fileName)
             self.updateFlashEnableUiState()
-
-    def paintEvent(self, event: QPaintEvent) -> None:
-        # Using showEvent here would be better, but it doesn't work. It must be too early.
-        # Using a single shot QTimer in showEvent with a 0 timeout also doesn't work.
-        # Using a non-0 value, like 50ms, works, but I hate it.#
-        # Even paintEvent needs a 0 time event... whatever it works.
-        if (not self.initial_show_called):
-            self.initial_show_called = True
-            QTimer.singleShot(0, lambda: self.ui.status_read_from_hardware.setFocus(Qt.FocusReason.OtherFocusReason))
-            # self.ui.status_read_from_hardware.setFocus(Qt.FocusReason.TabFocusReason)
-        super().paintEvent(event)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.isClosing = True
@@ -147,7 +131,7 @@ class Window(QMainWindow):
     ##### Start Helper Functions #####
 
     def startLogThread(self):
-        if True:
+        if False:
             self.backgroundLogThread: QThread = Serial_LogWatcher(Six15_API.VID_SIX15, Six15_API.PID_FRAMEWORK_IR)
         else:
             self.backgroundLogThread: QThread = Framework_IR_LogWatcher()
@@ -188,10 +172,6 @@ class Window(QMainWindow):
         # Ideally everything here would be set in QT Creator, but some things can't
         self.ui.label_version_gui_version.setText(f"{AppVersion.GIT_VERSION}")
         self.ui.lineEdit_stm32_fw_file_name.setText(self.settings.value(Window.SETTING_STM32_FW_FILE_NAME))
-        self.ui.lineEdit_fpga_fw_file_name.setText(self.settings.value(Window.SETTING_FPGA_FW_FILE_NAME))
-
-        for _, item in Six15_API.I2C_DEV_TO_BYTE.items():
-            self.ui.control_i2c_device.addItem(item.prettyName, item)
 
         self.clearStateFromDisconnect()
 
@@ -258,9 +238,9 @@ class Window(QMainWindow):
             self.backgroundLogThread.set_Framework_IR(self.framework_ir)
 
         if (framework_ir == None):
-            Logger.info("#### Device Disconnected: Framework IR Display")
+            Logger.info("#### Device Disconnected: Framework IR")
         else:
-            Logger.info("#### Device Connected: Framework IR Display")
+            Logger.info("#### Device Connected: Framework IR")
 
         if (framework_ir == None):
             self.clearStateFromDisconnect()
@@ -284,42 +264,14 @@ class Window(QMainWindow):
         ui.label_version_micro_sw_version.setEnabled(enabled)
         ui.control_reboot.setEnabled(enabled)
         ui.control_reboot_bootloader.setEnabled(enabled)
-        ui.status_read_from_hardware.setEnabled(enabled)
 
-        ui.pushButton_framework_ir_button_1.setEnabled(enabled)
-        ui.pushButton_framework_ir_button_2.setEnabled(enabled)
-        ui.pushButton_framework_ir_button_3.setEnabled(enabled)
-        ui.pushButton_framework_ir_button_4.setEnabled(enabled)
-        ui.pushButton_framework_ir_button_5.setEnabled(enabled)
-        ui.pushButton_framework_ir_button_6.setEnabled(enabled)
-
-        ui.label_version_fpga_version.setEnabled(enabled)
         ui.control_brightness_up.setEnabled(enabled)
         ui.control_brightness_down.setEnabled(enabled)
-        ui.control_test_pattern_flat.setEnabled(enabled)
-        ui.control_test_pattern_none.setEnabled(enabled)
-        ui.control_test_pattern_smpte_color_bar.setEnabled(enabled)
-        ui.control_test_pattern_100_color_bar.setEnabled(enabled)
-        ui.control_test_pattern_mono_stair.setEnabled(enabled)
-        ui.control_test_pattern_white_cross_on_black.setEnabled(enabled)
-        ui.control_test_pattern_black_cross_on_white.setEnabled(enabled)
-        ui.control_test_pattern_linear_ramp.setEnabled(enabled)
-        ui.control_test_pattern_flat_r.setEnabled(enabled)
-        ui.control_test_pattern_flat_g.setEnabled(enabled)
-        ui.control_test_pattern_flat_b.setEnabled(enabled)
-        ui.control_test_pattern_flat_slider.setEnabled(enabled)
-        ui.control_test_pattern_flat_label.setEnabled(enabled)
-        ui.control_test_pattern_disp_none.setEnabled(enabled)
-        ui.control_test_pattern_disp_black.setEnabled(enabled)
-        ui.control_test_pattern_disp_white.setEnabled(enabled)
-        ui.control_i2c_read.setEnabled(enabled)
-        ui.control_i2c_write.setEnabled(enabled)
 
     def clearStateFromDisconnect(self) -> None:
         if (self.framework_ir != None):
             Logger.error("Can't clearStateFromDisconnect, a Framework_IR is connected")
         self.ui.label_version_micro_sw_version.setText("N/A")
-        self.ui.label_version_fpga_version.setText("N/A")
         self.updateFlashEnableUiState()
         self.ui.progress_bar_fw.setEnabled(False)
         self.ui.progress_bar_fw.setValue(0)
@@ -335,11 +287,6 @@ class Window(QMainWindow):
         if (version != None):
             self.ui.label_version_micro_sw_version.setText(f"{version.major}.{version.minor} ({version.git_version})")
 
-        fpga_version = self.framework_ir.queryFPGA_Version()
-        if (fpga_version != None):
-            self.ui.label_version_fpga_version.setText(f"{fpga_version.version}")
-            self.ui.label_version_fpga_version.setText(f"{fpga_version.git_version if fpga_version.git_version != None else 'Unknown'}")
-
 
         self.updateFlashEnableUiState()
         self.readAndApplyStateToUI(True)
@@ -352,72 +299,22 @@ class Window(QMainWindow):
 
     def updateFlashEnableUiState(self):
         stm32_fw_file_name = str(self.ui.lineEdit_stm32_fw_file_name.text())
-        fpga_fw_file_name = str(self.ui.lineEdit_fpga_fw_file_name.text())
 
         flashSTM32Enable = (not self.any_update_state_in_progress) and (self.framework_ir != None or self.framework_ir_bootloader != None) and (stm32_fw_file_name != "")
-        flashFPGAEnable = (not self.any_update_state_in_progress) and (self.framework_ir != None) and (fpga_fw_file_name != "")
 
         self.ui.pushButton_update_stm32.setEnabled(flashSTM32Enable)
-        self.ui.pushButton_update_fpga.setEnabled(flashFPGAEnable)
-
-    @staticmethod
-    def applyFramework_IR_StateToUi(ui: Main_Window_UI.Ui_Form, framework_ir_display_state: Optional[Six15_API.Response.OLED_DisplayState]):
-        enabled = framework_ir_display_state != None
-        ui.state_framework_ir_brightness.setEnabled(enabled)
-        ui.state_framework_ir_temperature.setEnabled(enabled)
-        ui.state_framework_ir_serial_number.setEnabled(enabled)
-
-        ui.state_framework_ir_brightness.setText("N/A")
-        ui.state_framework_ir_temperature.setText("N/A")
-        ui.state_framework_ir_serial_number.setText("N/A")
-
-        if framework_ir_display_state != None:
-            ui.state_framework_ir_temperature.setText(f"{framework_ir_display_state.brightness}")
-            ui.state_framework_ir_temperature.setText(f"{framework_ir_display_state.temperature_value}")
-            ui.state_framework_ir_serial_number.setText(f"{framework_ir_display_state.serial_number}")
 
 
     @staticmethod
-    def applyHDMI_StateToUi(ui: Main_Window_UI.Ui_Form, hdmi_state: Optional[Six15_API.Response.HDMI_State]):
-        hasState = hdmi_state != None
+    def applyFramework_IR_StateToUi(ui: Main_Window_UI.Ui_Form, framework_ir_state: Optional[Six15_API.Response.Framework_IR_State]):
+        enabled = framework_ir_state != None
+        ui.state_val1.setEnabled(enabled)
 
-        ui.state_hdmi_input_source_locked.setEnabled(hasState)
-        ui.state_hdmi_resolution.setEnabled(hasState)
-        ui.state_hdmi_fps.setEnabled(hasState)
-        ui.state_hdmi_clock_freq.setEnabled(hasState)
-        ui.state_hdmi_total_resolution.setEnabled(hasState)
+        ui.state_val1.setText("N/A")
 
-        ui.state_hdmi_input_source_locked.setText("N/A")
-        ui.state_hdmi_resolution.setText("N/A")
-        ui.state_hdmi_fps.setText("N/A")
-        ui.state_hdmi_clock_freq.setText("N/A")
-        ui.state_hdmi_total_resolution.setText("N/A")
+        if framework_ir_state != None:
+            ui.state_val1.setText(f"{framework_ir_state.val1}")
 
-        if hasState:
-            ui.state_hdmi_input_source_locked.setText(f"{hdmi_state.input_source_locked != 0}")
-            if hdmi_state.input_source_locked:
-                ui.state_hdmi_resolution.setText(f"{hdmi_state.active_width}x{hdmi_state.active_height}")
-                ui.state_hdmi_fps.setText(f"{hdmi_state.fps:.2f}")
-                ui.state_hdmi_clock_freq.setText(f"{hdmi_state.clock_freq:.2f} MHz")
-                ui.state_hdmi_total_resolution.setText(f"{hdmi_state.total_width}x{hdmi_state.total_height}")
-
-
-    @staticmethod
-    def applyEDID_StateToUI(ui: Main_Window_UI.Ui_Form, edid_state: Optional[Six15_API.Response.EDID_State]):
-        hasState = edid_state != None
-
-        ui.state_edid_num_i2c_start.setEnabled(hasState)
-        ui.state_edid_e_edid_page_addr_accessed.setEnabled(hasState)
-        ui.state_edid_error_flag.setEnabled(hasState)
-
-        ui.state_edid_num_i2c_start.setText("N/A")
-        ui.state_edid_e_edid_page_addr_accessed.setText("N/A")
-        ui.state_edid_error_flag.setText("N/A")
-
-        if hasState:
-            ui.state_edid_num_i2c_start.setText(f"{edid_state.num_start_conditions}")
-            ui.state_edid_e_edid_page_addr_accessed.setText(f"{True if edid_state.e_edid_page_addr_accessed else False}")
-            ui.state_edid_error_flag.setText(f"{True if edid_state.error_flag else False}")
 
 
     def hookEvents(self):
@@ -425,58 +322,13 @@ class Window(QMainWindow):
 
         self.ui.pushButton_browse_stm32.clicked.connect(self.browse_button_stm32_clicked)
         self.ui.pushButton_update_stm32.clicked.connect(self.update_stm32_button_clicked)
-        self.ui.pushButton_browse_fpga.clicked.connect(self.browse_button_fpga_clicked)
-        self.ui.pushButton_update_fpga.clicked.connect(self.update_fpga_button_clicked)
         self.ui.lineEdit_stm32_fw_file_name.editingFinished.connect(self.filename_stm32_fw_edit_finished)
-        self.ui.lineEdit_fpga_fw_file_name.editingFinished.connect(self.filename_fpga_fw_edit_finished)
 
         self.ui.control_reboot.clicked.connect(self.button_reboot_clicked)
         self.ui.control_reboot_bootloader.clicked.connect(self.button_reboot_bootloader_clicked)
-        self.ui.status_read_from_hardware.clicked.connect(self.read_from_hardware_clicked)
 
         self.ui.control_brightness_up.clicked.connect(self.brightness_up_clicked)
         self.ui.control_brightness_down.clicked.connect(self.brightness_down_clicked)
-
-        self.ui.control_i2c_read.clicked.connect(self.control_i2c_read_clicked)
-        self.ui.control_i2c_address.returnPressed.connect(self.control_i2c_read_clicked_no_err)
-        self.ui.control_i2c_write.clicked.connect(self.control_i2c_write_clicked)
-        self.ui.control_i2c_write_value.returnPressed.connect(self.control_i2c_write_clicked_no_err)
-
-        self.ui.control_test_pattern_flat.clicked.connect(self.sendFlatAndColor)
-        self.ui.control_test_pattern_none.clicked.connect(lambda: self.send_I2C_TestPattern(1))
-        self.ui.control_test_pattern_smpte_color_bar.clicked.connect(lambda: self.send_I2C_TestPattern(2))
-        self.ui.control_test_pattern_100_color_bar.clicked.connect(lambda: self.send_I2C_TestPattern(3))
-        self.ui.control_test_pattern_mono_stair.clicked.connect(lambda: self.send_I2C_TestPattern(4))
-        self.ui.control_test_pattern_white_cross_on_black.clicked.connect(lambda: self.send_I2C_TestPattern(5))
-        self.ui.control_test_pattern_black_cross_on_white.clicked.connect(lambda: self.send_I2C_TestPattern(6))
-        self.ui.control_test_pattern_linear_ramp.clicked.connect(self.send_I2C_DispTestPatternLinearRamp)
-
-        self.ui.control_test_pattern_flat_r.clicked.connect(self.send_I2C_TestPattern_Color)
-        self.ui.control_test_pattern_flat_g.clicked.connect(self.send_I2C_TestPattern_Color)
-        self.ui.control_test_pattern_flat_b.clicked.connect(self.send_I2C_TestPattern_Color)
-        self.ui.control_test_pattern_flat_slider.valueChanged.connect(self.control_test_pattern_flat_slider_moved)
-
-        self.ui.control_test_pattern_disp_black.clicked.connect(self.send_I2C_DispTestPatternBlack)
-        self.ui.control_test_pattern_disp_white.clicked.connect(self.send_I2C_DispTestPatternWhite)
-        self.ui.control_test_pattern_disp_none.clicked.connect(self.send_I2C_DispTestPatternNone)
-
-        self.ui.pushButton_framework_ir_button_1.clicked.connect(lambda: self.sendDebugAction(1))
-        self.ui.pushButton_framework_ir_button_2.clicked.connect(lambda: self.sendDebugAction(2))
-        self.ui.pushButton_framework_ir_button_3.clicked.connect(lambda: self.sendDebugAction(3))
-        self.ui.pushButton_framework_ir_button_4.clicked.connect(lambda: self.sendDebugAction(4))
-        self.ui.pushButton_framework_ir_button_5.clicked.connect(lambda: self.sendDebugAction(5))
-        self.ui.pushButton_framework_ir_button_6.clicked.connect(lambda: self.sendDebugAction(6))
-
-    def sendDebugAction(self, index: int):
-        if (not self.framework_ir):
-            Logger.error(f"Can't do debug action {index}, no Framework_IR connected")
-            return
-        self.framework_ir.sendDebugAction(index)
-
-    def sendFlatAndColor(self):
-        self.send_I2C_TestPattern_Color()
-        self.control_test_pattern_flat_slider_moved()
-        self.send_I2C_TestPattern(0)
 
     def filename_stm32_fw_edit_finished(self):
         self.updateFlashEnableUiState()
@@ -498,129 +350,6 @@ class Window(QMainWindow):
         brightness_result = self.framework_ir.sendAdjustBrightness(-1)
         Logger.info(f"Decreased brightness to:{brightness_result.brightness}")
 
-    def control_i2c_read_clicked_no_err(self):
-        if (not self.framework_ir):
-            return
-        self.control_i2c_read_clicked()
-
-    def control_i2c_read_clicked(self):
-        if (not self.framework_ir):
-            Logger.error("Can't I2C read, no Framework_IR connected")
-            return
-        index = self.ui.control_i2c_device.currentIndex()
-        itemData: Six15_API.I2C_Info = self.ui.control_i2c_device.itemData(index)
-
-        addr_str = str(self.ui.control_i2c_address.text())
-        if (addr_str == ""):
-            addr_str = "0"
-            self.ui.control_i2c_address.setText(addr_str)
-        addr = int(addr_str,  0)
-
-        result = self.framework_ir.sendI2C_CMD(0, itemData, addr, 0)
-        if (result.value < 256):
-            ascii_value = ascii(int(result.value).to_bytes(2).decode("utf-8", errors="replace"))
-        else:
-            ascii_value = "N/A"
-            # ascii_value_high = ascii(int((result.value & 0xFF00)>>8).to_bytes().decode("utf-8", errors="replace"))
-            # ascii_value_low = ascii(int(result.value & 0x00FF).to_bytes().decode("utf-8", errors="replace"))
-            # ascii_value = ascii_value_high + ascii_value_low
-        
-        val_str = f"0x{result.value:04X} {result.value} {ascii_value}"
-        self.ui.control_i2c_read_value.setText(val_str)
-        Logger.info(f"I2C Read  {itemData.prettyName} addr:0x{addr:04X} val:{val_str}")
-        if (self.ui.control_i2c_addr_auto_inc.isChecked()):
-            self.ui.control_i2c_address.setText(f"0x{addr+1:02X}")
-
-    def control_i2c_write_clicked_no_err(self):
-        if (not self.framework_ir):
-            return
-        self.control_i2c_write_clicked()
-
-    def control_i2c_write_clicked(self):
-        if (not self.framework_ir):
-            Logger.error("Can't I2C write, no Framework_IR connected")
-            return
-        index = self.ui.control_i2c_device.currentIndex()
-        itemData: Six15_API.I2C_Info = self.ui.control_i2c_device.itemData(index)
-
-        addr_str = str(self.ui.control_i2c_address.text())
-        if (addr_str == ""):
-            addr_str = "0"
-            self.ui.control_i2c_address.setText(addr_str)
-        addr = int(addr_str,  0)
-
-        value_str = str(self.ui.control_i2c_write_value.text())
-        if (value_str == ""):
-            value_str = "0"
-            self.ui.control_i2c_write_value.setText(value_str)
-        value = int(value_str,  0)
-
-        self.framework_ir.sendI2C_CMD(1, itemData, addr, value)
-        val_str = f"0x{value:02X} {value}"
-        Logger.info(f"I2C Write {itemData.prettyName} addr:0x{addr:04X} val:{val_str}")
-        if (self.ui.control_i2c_addr_auto_inc.isChecked()):
-            self.ui.control_i2c_address.setText(f"0x{addr+1:02X}")
-
-    def control_test_pattern_flat_slider_moved(self):
-        value = self.ui.control_test_pattern_flat_slider.value()
-        self.ui.control_test_pattern_flat_label.setText(str(value))
-        if (not self.ui.control_test_pattern_flat_slider.isEnabled()):
-            return
-        if (not self.framework_ir):
-            Logger.error("Can't set test pattern level, no Framework_IR connected")
-            return
-
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x22, value)
-
-    def send_I2C_TestPattern(self, pattern_sel):
-        if (not self.framework_ir):
-            Logger.error("Can't set test pattern, no Framework_IR connected")
-            return
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x20, pattern_sel)
-
-        # if command is setting to 'none' also clear the linear ramp register
-        if (pattern_sel == 1):
-            self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0xF1, 0x00)
-
-    def send_I2C_TestPattern_Color(self):
-        if (not self.framework_ir):
-            Logger.error("Can't set test pattern color, no Framework_IR connected")
-            return
-        enable_r = self.ui.control_test_pattern_flat_r.isChecked()
-        enable_g = self.ui.control_test_pattern_flat_g.isChecked()
-        enable_b = self.ui.control_test_pattern_flat_b.isChecked()
-        enable_rgb = (enable_r << 2) | (enable_g << 1) | (enable_b << 0)
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x21, enable_rgb)
-
-    def send_I2C_DispTestPatternBlack(self):
-        if (not self.framework_ir):
-            Logger.error("Can't set test pattern, no Framework_IR connected")
-            return
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x0D)
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1E, 0x00)
-
-    def send_I2C_DispTestPatternWhite(self):
-        if (not self.framework_ir):
-            Logger.error("Can't set test pattern, no Framework_IR connected")
-            return
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x0D)
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1E, 0x77)
-
-    def send_I2C_DispTestPatternNone(self):
-        if (not self.framework_ir):
-            Logger.error("Can't set test pattern, no Framework_IR connected")
-            return
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x00)
-
-    def send_I2C_DispTestPatternLinearRamp(self):
-        if (not self.framework_ir):
-            Logger.error("Can't set test pattern, no Framework_IR connected")
-            return
-        # Disable the FPGA pattern generation (set to NONE)
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x20, 1)
-        # set register to enable the linear ramp
-        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0xF1, 0x01)
-
     ##### End Helper Functions #####
 
     ##### Start UI Event Handlers #####
@@ -637,13 +366,6 @@ class Window(QMainWindow):
         if fileName:
             Logger.info(f"Selected DFU file:{fileName}")
             self.ui.lineEdit_stm32_fw_file_name.setText(fileName)
-            self.updateFlashEnableUiState()
-
-    def browse_button_fpga_clicked(self):
-        fileName = self.openFileNameDialog("Select an FPGA FW File", "JED File", "jed")
-        if fileName:
-            Logger.info(f"Flashing jed:{fileName}")
-            self.ui.lineEdit_fpga_fw_file_name.setText(fileName)
             self.updateFlashEnableUiState()
 
     def update_stm32_button_clicked(self):
@@ -705,34 +427,6 @@ class Window(QMainWindow):
         self.startLogThread()
         self.updateFlashEnableUiState()
 
-    def update_fpga_button_clicked(self):
-        if (not self.framework_ir):
-            Logger.error("Can't flash FPGA, no Framework_IR connected")
-            return
-        fw_file_name = str(self.ui.lineEdit_fpga_fw_file_name.text())
-        if (not os.path.exists(fw_file_name)):
-            Logger.critical_error(f"FPGA Firmware File: \"{fw_file_name}\" doesn't exist")
-            return
-        self.settings.setValue(Window.SETTING_FPGA_FW_FILE_NAME, fw_file_name)
-
-        self.any_update_state_in_progress = True
-        self.ui.lineEdit_fpga_fw_file_name.setFocus(Qt.FocusReason.OtherFocusReason)
-        self.updateFlashEnableUiState()
-
-        def fpga_fw_status_callback(finished: bool, percent_complete: float):
-            if (not self.framework_ir):
-                return
-            self.ui.progress_bar_fw.setEnabled(True)
-            self.ui.progress_bar_fw.setValue(percent_complete)
-            if (finished):
-                # Reboot so the new firmware is applied
-                self.doReboot()
-                self.any_update_state_in_progress = False
-                self.updateFlashEnableUiState()
-
-        self.firmwareUpdateThread = FPGA_FirmwareUpdateThread(fw_file_name, fpga_fw_status_callback, self.framework_ir)
-        self.firmwareUpdateThread.start()
-
     def button_reboot_clicked(self):
         if (not self.framework_ir):
             Logger.error("Can't Reboot, no Framework_IR connected")
@@ -772,18 +466,11 @@ class Window(QMainWindow):
 
     def readAndApplyStateToUI(self, doRead: bool):
         if doRead and self.framework_ir != None:
-            self.framework_ir_display_state = self.framework_ir.queryOLED_DisplayState()
-            self.hdmi_state = self.framework_ir.queryHDMI_State()
-            self.edid_state = self.framework_ir.queryEDID_State()
-
+            self.framework_ir_state = self.framework_ir.queryFramework_IR_State()
         else:
-            self.framework_ir_display_state = None
-            self.hdmi_state = None
-            self.edid_state = None
+            self.framework_ir_state = None
 
-        Window.applyFramework_IR_StateToUi(self.ui, self.framework_ir_display_state)
-        Window.applyHDMI_StateToUi(self.ui, self.hdmi_state)
-        Window.applyEDID_StateToUI(self.ui, self.edid_state)
+        Window.applyFramework_IR_StateToUi(self.ui, self.framework_ir_state)
 
 
     def read_from_hardware_clicked(self):

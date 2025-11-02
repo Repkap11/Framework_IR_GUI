@@ -14,7 +14,6 @@ import framework_ir_six15_api as Six15_API
 from lib_six15_api.six15_api_backend import Six15_API_Backend
 from framework_ir_six15_api import Framework_IR_Six15_API
 from lib_six15_api.logger import Logger
-import lib_six15_api.lattice_fpga_updater as Lattice_FPGA_Updater
 import lib_six15_api.stm32_firmware_updater as STM32_Firmware_Update
 
 NUM_CHARGER_BAYS = 4
@@ -28,9 +27,6 @@ class Framework_IR(Framework_IR_Six15_API):
     def __init__(self, backend: Six15_API_Backend, *args) -> None:
         super().__init__(backend, False, *args)
         self.backend = backend
-
-    def flash_FPGA_FW(self, file_name: str, callback: Optional[Callable[[bool, int], None]] = None):
-        return Lattice_FPGA_Updater.flash_FPGA_FW(self, file_name, Six15_API.CMD.FLASH_FPGA_START, Six15_API.CMD.FLASH_FPGA_PROGRAM, Six15_API.CMD.FLASH_FPGA_END, callback)
 
     def readLog(self, lineFunc: Callable[[str], None], abortFunc: Callable[[None], bool]):
         keepReading = True
@@ -56,11 +52,6 @@ class Framework_IR(Framework_IR_Six15_API):
         if (partial_line != ""):
             lineFunc("<Warning, log ended with partial line>")
 
-    def queryOLED_DisplayState(self) -> Optional[Six15_API.Response.OLED_DisplayState]:
-        return self.sendCommand(Six15_API.CMD.OLED_DISPLAY_STATE)
-
-    def sendDebugAction(self, index: int) -> int:
-        return self.sendSimpleCMD(Six15_API.CMD.DEBUG_ACTION, struct.pack("<B", index))
 
     def parseForArgs():
         parser = argparse.ArgumentParser(description='Framework IR CLI')
@@ -78,17 +69,6 @@ class Framework_IR(Framework_IR_Six15_API):
         # Flash STM32 FW
         flash_stm32_fw_parser = sub_parsers.add_parser("flash_stm32_fw", help="Flash and Verify the STM32 microcontroller")
         flash_stm32_fw_parser.add_argument("file_name")
-
-        # Verify STM32 FW
-        verify_stm32_fw_parser = sub_parsers.add_parser("verify_stm32_fw", help="Verify the firmware of the STM32 microcontroller")
-        verify_stm32_fw_parser.add_argument("file_name")
-
-        # Flash FPGA FW
-        flash_fpga_fw_parser = sub_parsers.add_parser("flash_fpga_fw", help="Flash and Verify the FPGA logic")
-        flash_fpga_fw_parser.add_argument("file_name")
-
-        # Charger State
-        sub_parsers.add_parser("framework_ir_display_state", help="Dump information about the Framework_IR 2k display")
 
         args = parser.parse_args()
         return args
@@ -131,11 +111,6 @@ class Framework_IR(Framework_IR_Six15_API):
             self.rebootBootloader()
         elif (args.sub_command == "reboot"):
             self.reboot()
-        elif (args.sub_command == "flash_fpga_fw"):
-            def callback(finished: bool, percent_complete: float):
-                print(f"\r Flash Progress:{percent_complete:3.0f}", end="\n" if finished else "")
-            self.flash_FPGA_FW(args.file_name, callback)
-            self.reboot()
         elif (args.sub_command == "flash_stm32_fw"):
             self.rebootBootloader()
             time.sleep(Framework_IR.REBOOT_TO_BOOTLOADER_DELAY_SECONDS)
@@ -146,10 +121,6 @@ class Framework_IR(Framework_IR_Six15_API):
             time.sleep(Framework_IR.REBOOT_TO_BOOTLOADER_DELAY_SECONDS)
             Logger.info("")
             Framework_IR.verifySTM32InBootloader(args.file_name)
-        elif (args.sub_command == "framework_ir_display_state"):
-            framework_ir_display_state: Six15_API.Response.OLED_DisplayState = self.queryOLED_DisplayState()
-            Logger.info(f"temp_value: {framework_ir_display_state.temp_value}")
-            return -1
         return 0
 
 
