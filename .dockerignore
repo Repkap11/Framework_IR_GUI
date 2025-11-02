@@ -1,0 +1,5 @@
+*
+!DockerfileWin
+!DockerfileLinux
+!DockerfilePi
+!requirements.txt

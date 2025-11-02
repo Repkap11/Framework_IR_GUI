@@ -1,0 +1,36 @@
+{
+    "cSpell.words": [
+        "BOOTLOADER",
+        "disp",
+        "edid",
+        "EDIDS",
+        "eeprom",
+        "libusb",
+        "MEIPASS",
+        "microcontroller",
+        "OLED",
+        "ptvsd",
+        "pydfu",
+        "pyusb"
+    ],
+    "python.analysis.extraPaths": [
+        "./out"
+    ],
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "autopep8.args": [
+        "--max-line-length",
+        "200"
+    ],
+    "mypy-type-checker.args": [
+        "--no-strict-optional",
+        "--namespace-packages",
+        "--follow-imports=silent",
+        "--ignore-missing-imports",
+        "--show-column-numbers",
+        "--no-pretty",
+        "--disallow-untyped-calls",
+        "--disallow-untyped-defs",
+        "--no_implicit_optional=True",
+        "--disallow-incomplete-defs"
+    ]
+}

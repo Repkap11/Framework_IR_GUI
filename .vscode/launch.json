@@ -1,0 +1,88 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "OLED 2k CMD Version",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceRoot}/src/594_gui.py",
+            "preLaunchTask": "make debug-depends",
+            "args": [
+                "version"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "OLED 2k DFU Test",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "make debug-depends",
+            "program": "${workspaceRoot}/src/pydfy.py",
+            "args": [
+                "-u",
+                "fw_files/usb_test_paul.dfu"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "OLED 2k flash_stm32_fw",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceRoot}/src/594_gui.py",
+            "preLaunchTask": "make debug-depends",
+            "args": [
+                "flash_stm32_fw",
+                "../charger/Build/charger.dfu"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "OLED 2k verify_stm32_fw",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceRoot}/src/594_gui.py",
+            "preLaunchTask": "make debug-depends",
+            "args": [
+                "verify_stm32_fw",
+                "../charger/Build/charger.dfu"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "OLED 2k flash_fpga_fw",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceRoot}/src/594_gui.py",
+            "preLaunchTask": "make debug-depends",
+            "args": [
+                "flash_fpga_fw",
+                "camera",
+                "paul.jed"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "OLED 2k GUI Linux",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "make debug-depends",
+            "program": "${workspaceRoot}/src/594_gui.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "OLED 2k GUI Win",
+            "type": "debugpy",
+            "request": "launch",
+            "preLaunchTask": "./win_build.ps1",
+            "program": "${workspaceRoot}/src/594_gui.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+    ]
+}
