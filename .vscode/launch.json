@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "OLED 2k CMD Version",
+            "name": "Framework IR CMD Version",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceRoot}/src/594_gui.py",
+            "program": "${workspaceRoot}/src/framework_ir_gui.py",
             "preLaunchTask": "make debug-depends",
             "args": [
                 "version"
@@ -14,7 +14,7 @@
             "justMyCode": false
         },
         {
-            "name": "OLED 2k DFU Test",
+            "name": "Framework IR DFU Test",
             "type": "debugpy",
             "request": "launch",
             "preLaunchTask": "make debug-depends",
@@ -27,10 +27,10 @@
             "justMyCode": false
         },
         {
-            "name": "OLED 2k flash_stm32_fw",
+            "name": "Framework IR flash_stm32_fw",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceRoot}/src/594_gui.py",
+            "program": "${workspaceRoot}/src/framework_ir_gui.py",
             "preLaunchTask": "make debug-depends",
             "args": [
                 "flash_stm32_fw",
@@ -40,10 +40,10 @@
             "justMyCode": true
         },
         {
-            "name": "OLED 2k verify_stm32_fw",
+            "name": "Framework IR verify_stm32_fw",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceRoot}/src/594_gui.py",
+            "program": "${workspaceRoot}/src/framework_ir_gui.py",
             "preLaunchTask": "make debug-depends",
             "args": [
                 "verify_stm32_fw",
@@ -53,10 +53,10 @@
             "justMyCode": true
         },
         {
-            "name": "OLED 2k flash_fpga_fw",
+            "name": "Framework IR flash_fpga_fw",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceRoot}/src/594_gui.py",
+            "program": "${workspaceRoot}/src/framework_ir_gui.py",
             "preLaunchTask": "make debug-depends",
             "args": [
                 "flash_fpga_fw",
@@ -67,20 +67,20 @@
             "justMyCode": true
         },
         {
-            "name": "OLED 2k GUI Linux",
+            "name": "Framework IR GUI Linux",
             "type": "debugpy",
             "request": "launch",
             "preLaunchTask": "make debug-depends",
-            "program": "${workspaceRoot}/src/594_gui.py",
+            "program": "${workspaceRoot}/src/framework_ir_gui.py",
             "console": "integratedTerminal",
             "justMyCode": false
         },
         {
-            "name": "OLED 2k GUI Win",
+            "name": "Framework IR GUI Win",
             "type": "debugpy",
             "request": "launch",
             "preLaunchTask": "./win_build.ps1",
-            "program": "${workspaceRoot}/src/594_gui.py",
+            "program": "${workspaceRoot}/src/framework_ir_gui.py",
             "console": "integratedTerminal",
             "justMyCode": false
         },

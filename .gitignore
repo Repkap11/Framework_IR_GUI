@@ -1,6 +1,6 @@
 # Our out dir
 out
-594_gui_*
+framework_ir_gui_*
 src/qt_ui/*.py
 src/generated
 sbom

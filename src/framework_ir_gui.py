@@ -13,30 +13,30 @@ from PySide6.QtCore import QThread, QSettings, QTimer, Qt, Signal
 from PySide6.QtGui import QDragMoveEvent, QDropEvent, QPaintEvent, QCloseEvent, QColor, QIcon, QColorConstants
 from generated import main_window_ui as Main_Window_UI
 from generated import app_version as AppVersion
-from ui_device_watcher import OLED_2k_DeviceListenThread, OLED_2k_DeviceDisconnectThread
+from ui_device_watcher import Framework_IR_DeviceListenThread, Framework_IR_DeviceDisconnectThread
 from lib_six15_api.stm32_bootloader_finder_thread import BootloaderListenThread, BootloaderDisconnectThread
 from lib_six15_api.sys_exception_hook import SysExceptionHook
 import part_numbers as PartNumbers
-from oled_2k import OLED_2k
-from oled_2k_finder import OLED_2k_Finder
+from framework_ir import Framework_IR
+from framework_ir_finder import Framework_IR_Finder
 from lib_six15_api.serial_log_watcher import Serial_LogWatcher
-from oled_2k_log_watcher import OLED_2k_LogWatcher
-import oled_2k_six15_api as Six15_API
+from framework_ir_log_watcher import Framework_IR_LogWatcher
+import framework_ir_six15_api as Six15_API
 from lib_six15_api.logger import Logger, LogLevel, LoggerImpl
 import lib_six15_api.version
 from firmware_update_thread import FPGA_FirmwareUpdateThread
 from thread_debug import DEBUG_THREADS
 import lib_six15_api.stm32_firmware_updater as STM32_Firmware_Update
 
-APPLICATION_NAME: str = "OLEDWorks 2k"
+APPLICATION_NAME: str = "Framework_IR 2k"
 
 
 class Window(QMainWindow):
     ui: Main_Window_UI.Ui_Form
     backgroundDeviceThread: Optional[QThread] = None
     backgroundBootloaderThread: Optional[QThread] = None
-    oled_2k: Optional[OLED_2k] = None
-    oled_2k_bootloader: Optional[usb.core.Device] = None
+    framework_ir: Optional[Framework_IR] = None
+    framework_ir_bootloader: Optional[usb.core.Device] = None
     any_update_state_in_progress: bool = False
 
     event_log_lines: str = ""
@@ -51,7 +51,7 @@ class Window(QMainWindow):
     def __init__(self):
         super().__init__()
         SysExceptionHook()
-        self.setWindowTitle(f"OLED_2k GUI Version: {AppVersion.GIT_VERSION} - Part Number: {PartNumbers.GUI_PART_NUMBER}")
+        self.setWindowTitle(f"Framework_IR GUI Version: {AppVersion.GIT_VERSION} - Part Number: {PartNumbers.GUI_PART_NUMBER}")
         if hasattr(sys, '_MEIPASS'):
             icon_path = os.path.join(sys._MEIPASS, 'icon.ico')
         else:
@@ -137,9 +137,9 @@ class Window(QMainWindow):
         self.backgroundBootloaderThread = None
         self.backgroundLogThread = None
 
-        if (self.oled_2k):
-            self.oled_2k.close()
-            self.oled_2k = None
+        if (self.framework_ir):
+            self.framework_ir.close()
+            self.framework_ir = None
         return super().closeEvent(event)
 
     ##### End Class Override Functions #####
@@ -148,9 +148,9 @@ class Window(QMainWindow):
 
     def startLogThread(self):
         if True:
-            self.backgroundLogThread: QThread = Serial_LogWatcher(Six15_API.VID_SIX15, Six15_API.PID_594)
+            self.backgroundLogThread: QThread = Serial_LogWatcher(Six15_API.VID_SIX15, Six15_API.PID_FRAMEWORK_IR)
         else:
-            self.backgroundLogThread: QThread = OLED_2k_LogWatcher()
+            self.backgroundLogThread: QThread = Framework_IR_LogWatcher()
         self.backgroundLogThread.start()
 
     def stopLogThread(self):
@@ -172,7 +172,7 @@ class Window(QMainWindow):
             self.backgroundDeviceThread.requestInterruption()
             self.backgroundDeviceThread.wait()
 
-        self.backgroundDeviceThread = OLED_2k_DeviceListenThread(self.onDeviceConnectionChange)
+        self.backgroundDeviceThread = Framework_IR_DeviceListenThread(self.onDeviceConnectionChange)
         self.backgroundDeviceThread.start()
 
     def restartDeviceDisconnectThread(self):
@@ -180,7 +180,7 @@ class Window(QMainWindow):
             self.backgroundDeviceThread.requestInterruption()
             self.backgroundDeviceThread.wait()
 
-        self.backgroundDeviceThread: QThread = OLED_2k_DeviceDisconnectThread(self.onDeviceConnectionChange, self.oled_2k)
+        self.backgroundDeviceThread: QThread = Framework_IR_DeviceDisconnectThread(self.onDeviceConnectionChange, self.framework_ir)
         if (self.backgroundDeviceThread):
             self.backgroundDeviceThread.start()
 
@@ -225,16 +225,16 @@ class Window(QMainWindow):
             pass
         error_message_box.exec()
 
-    def onBootloaderConnectionChange(self, oled_2k_bootloader: Optional[usb.core.Device]):
-        if (oled_2k_bootloader == self.oled_2k_bootloader):
-            Logger.warn(f"onBootloaderConnectionChange: nothing changed:{oled_2k_bootloader}")
+    def onBootloaderConnectionChange(self, framework_ir_bootloader: Optional[usb.core.Device]):
+        if (framework_ir_bootloader == self.framework_ir_bootloader):
+            Logger.warn(f"onBootloaderConnectionChange: nothing changed:{framework_ir_bootloader}")
             # No need to take action if nothing changed
             return
-        self.oled_2k_bootloader = oled_2k_bootloader
+        self.framework_ir_bootloader = framework_ir_bootloader
         if (self.isClosing):
             return
         self.updateStateFromBootloaderConnection()
-        if (oled_2k_bootloader == None):
+        if (framework_ir_bootloader == None):
             Logger.info("#### Device Disconnected: STM32 Bootloader")
             self.backgroundBootloaderThread = BootloaderListenThread(self.onBootloaderConnectionChange)
         else:
@@ -242,27 +242,27 @@ class Window(QMainWindow):
             self.backgroundBootloaderThread = BootloaderDisconnectThread(self.onBootloaderConnectionChange)
         self.backgroundBootloaderThread.start()
 
-    def onDeviceConnectionChange(self, oled_2k: OLED_2k):
-        if (oled_2k == self.oled_2k):
+    def onDeviceConnectionChange(self, framework_ir: Framework_IR):
+        if (framework_ir == self.framework_ir):
             # No need to take action if nothing changed
             return
 
-        if (self.oled_2k is not None):
-            self.oled_2k.close()
-            self.oled_2k = None
-        self.oled_2k = oled_2k
+        if (self.framework_ir is not None):
+            self.framework_ir.close()
+            self.framework_ir = None
+        self.framework_ir = framework_ir
         if (self.isClosing):
             return
 
-        if (isinstance(self.backgroundLogThread, OLED_2k_LogWatcher)):
-            self.backgroundLogThread.set_OLED_2k(self.oled_2k)
+        if (isinstance(self.backgroundLogThread, Framework_IR_LogWatcher)):
+            self.backgroundLogThread.set_Framework_IR(self.framework_ir)
 
-        if (oled_2k == None):
-            Logger.info("#### Device Disconnected: OLED 2k Display")
+        if (framework_ir == None):
+            Logger.info("#### Device Disconnected: Framework IR Display")
         else:
-            Logger.info("#### Device Connected: OLED 2k Display")
+            Logger.info("#### Device Connected: Framework IR Display")
 
-        if (oled_2k == None):
+        if (framework_ir == None):
             self.clearStateFromDisconnect()
             self.restartDeviceListenThread()
         else:
@@ -286,12 +286,12 @@ class Window(QMainWindow):
         ui.control_reboot_bootloader.setEnabled(enabled)
         ui.status_read_from_hardware.setEnabled(enabled)
 
-        ui.pushButton_oled2k_button_1.setEnabled(enabled)
-        ui.pushButton_oled2k_button_2.setEnabled(enabled)
-        ui.pushButton_oled2k_button_3.setEnabled(enabled)
-        ui.pushButton_oled2k_button_4.setEnabled(enabled)
-        ui.pushButton_oled2k_button_5.setEnabled(enabled)
-        ui.pushButton_oled2k_button_6.setEnabled(enabled)
+        ui.pushButton_framework_ir_button_1.setEnabled(enabled)
+        ui.pushButton_framework_ir_button_2.setEnabled(enabled)
+        ui.pushButton_framework_ir_button_3.setEnabled(enabled)
+        ui.pushButton_framework_ir_button_4.setEnabled(enabled)
+        ui.pushButton_framework_ir_button_5.setEnabled(enabled)
+        ui.pushButton_framework_ir_button_6.setEnabled(enabled)
 
         ui.label_version_fpga_version.setEnabled(enabled)
         ui.control_brightness_up.setEnabled(enabled)
@@ -316,8 +316,8 @@ class Window(QMainWindow):
         ui.control_i2c_write.setEnabled(enabled)
 
     def clearStateFromDisconnect(self) -> None:
-        if (self.oled_2k != None):
-            Logger.error("Can't clearStateFromDisconnect, a OLED_2k is connected")
+        if (self.framework_ir != None):
+            Logger.error("Can't clearStateFromDisconnect, a Framework_IR is connected")
         self.ui.label_version_micro_sw_version.setText("N/A")
         self.ui.label_version_fpga_version.setText("N/A")
         self.updateFlashEnableUiState()
@@ -327,15 +327,15 @@ class Window(QMainWindow):
         Window.applyEnabledState(self.ui, False)
 
     def queryStateFromDevice(self) -> None:
-        if (not self.oled_2k):
-            Logger.error("Can't queryStateFromDevice, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't queryStateFromDevice, no Framework_IR connected")
             return
 
-        version = self.oled_2k.queryMicroVersion()
+        version = self.framework_ir.queryMicroVersion()
         if (version != None):
             self.ui.label_version_micro_sw_version.setText(f"{version.major}.{version.minor} ({version.git_version})")
 
-        fpga_version = self.oled_2k.queryFPGA_Version()
+        fpga_version = self.framework_ir.queryFPGA_Version()
         if (fpga_version != None):
             self.ui.label_version_fpga_version.setText(f"{fpga_version.version}")
             self.ui.label_version_fpga_version.setText(f"{fpga_version.git_version if fpga_version.git_version != None else 'Unknown'}")
@@ -354,27 +354,27 @@ class Window(QMainWindow):
         stm32_fw_file_name = str(self.ui.lineEdit_stm32_fw_file_name.text())
         fpga_fw_file_name = str(self.ui.lineEdit_fpga_fw_file_name.text())
 
-        flashSTM32Enable = (not self.any_update_state_in_progress) and (self.oled_2k != None or self.oled_2k_bootloader != None) and (stm32_fw_file_name != "")
-        flashFPGAEnable = (not self.any_update_state_in_progress) and (self.oled_2k != None) and (fpga_fw_file_name != "")
+        flashSTM32Enable = (not self.any_update_state_in_progress) and (self.framework_ir != None or self.framework_ir_bootloader != None) and (stm32_fw_file_name != "")
+        flashFPGAEnable = (not self.any_update_state_in_progress) and (self.framework_ir != None) and (fpga_fw_file_name != "")
 
         self.ui.pushButton_update_stm32.setEnabled(flashSTM32Enable)
         self.ui.pushButton_update_fpga.setEnabled(flashFPGAEnable)
 
     @staticmethod
-    def applyOLED_2k_StateToUi(ui: Main_Window_UI.Ui_Form, oled_display_state: Optional[Six15_API.Response.OLED_DisplayState]):
-        enabled = oled_display_state != None
-        ui.state_oled_brightness.setEnabled(enabled)
-        ui.state_oled_temperature.setEnabled(enabled)
-        ui.state_oled_serial_number.setEnabled(enabled)
+    def applyFramework_IR_StateToUi(ui: Main_Window_UI.Ui_Form, framework_ir_display_state: Optional[Six15_API.Response.OLED_DisplayState]):
+        enabled = framework_ir_display_state != None
+        ui.state_framework_ir_brightness.setEnabled(enabled)
+        ui.state_framework_ir_temperature.setEnabled(enabled)
+        ui.state_framework_ir_serial_number.setEnabled(enabled)
 
-        ui.state_oled_brightness.setText("N/A")
-        ui.state_oled_temperature.setText("N/A")
-        ui.state_oled_serial_number.setText("N/A")
+        ui.state_framework_ir_brightness.setText("N/A")
+        ui.state_framework_ir_temperature.setText("N/A")
+        ui.state_framework_ir_serial_number.setText("N/A")
 
-        if oled_display_state != None:
-            ui.state_oled_temperature.setText(f"{oled_display_state.brightness}")
-            ui.state_oled_temperature.setText(f"{oled_display_state.temperature_value}")
-            ui.state_oled_serial_number.setText(f"{oled_display_state.serial_number}")
+        if framework_ir_display_state != None:
+            ui.state_framework_ir_temperature.setText(f"{framework_ir_display_state.brightness}")
+            ui.state_framework_ir_temperature.setText(f"{framework_ir_display_state.temperature_value}")
+            ui.state_framework_ir_serial_number.setText(f"{framework_ir_display_state.serial_number}")
 
 
     @staticmethod
@@ -460,18 +460,18 @@ class Window(QMainWindow):
         self.ui.control_test_pattern_disp_white.clicked.connect(self.send_I2C_DispTestPatternWhite)
         self.ui.control_test_pattern_disp_none.clicked.connect(self.send_I2C_DispTestPatternNone)
 
-        self.ui.pushButton_oled2k_button_1.clicked.connect(lambda: self.sendDebugAction(1))
-        self.ui.pushButton_oled2k_button_2.clicked.connect(lambda: self.sendDebugAction(2))
-        self.ui.pushButton_oled2k_button_3.clicked.connect(lambda: self.sendDebugAction(3))
-        self.ui.pushButton_oled2k_button_4.clicked.connect(lambda: self.sendDebugAction(4))
-        self.ui.pushButton_oled2k_button_5.clicked.connect(lambda: self.sendDebugAction(5))
-        self.ui.pushButton_oled2k_button_6.clicked.connect(lambda: self.sendDebugAction(6))
+        self.ui.pushButton_framework_ir_button_1.clicked.connect(lambda: self.sendDebugAction(1))
+        self.ui.pushButton_framework_ir_button_2.clicked.connect(lambda: self.sendDebugAction(2))
+        self.ui.pushButton_framework_ir_button_3.clicked.connect(lambda: self.sendDebugAction(3))
+        self.ui.pushButton_framework_ir_button_4.clicked.connect(lambda: self.sendDebugAction(4))
+        self.ui.pushButton_framework_ir_button_5.clicked.connect(lambda: self.sendDebugAction(5))
+        self.ui.pushButton_framework_ir_button_6.clicked.connect(lambda: self.sendDebugAction(6))
 
     def sendDebugAction(self, index: int):
-        if (not self.oled_2k):
-            Logger.error(f"Can't do debug action {index}, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error(f"Can't do debug action {index}, no Framework_IR connected")
             return
-        self.oled_2k.sendDebugAction(index)
+        self.framework_ir.sendDebugAction(index)
 
     def sendFlatAndColor(self):
         self.send_I2C_TestPattern_Color()
@@ -485,27 +485,27 @@ class Window(QMainWindow):
         self.updateFlashEnableUiState()
 
     def brightness_up_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't increase brightness, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't increase brightness, no Framework_IR connected")
             return
-        brightness_result = self.oled_2k.sendAdjustBrightness(1)
+        brightness_result = self.framework_ir.sendAdjustBrightness(1)
         Logger.info(f"Increased brightness to:{brightness_result.brightness}")
 
     def brightness_down_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't decrease brightness, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't decrease brightness, no Framework_IR connected")
             return
-        brightness_result = self.oled_2k.sendAdjustBrightness(-1)
+        brightness_result = self.framework_ir.sendAdjustBrightness(-1)
         Logger.info(f"Decreased brightness to:{brightness_result.brightness}")
 
     def control_i2c_read_clicked_no_err(self):
-        if (not self.oled_2k):
+        if (not self.framework_ir):
             return
         self.control_i2c_read_clicked()
 
     def control_i2c_read_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't I2C read, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't I2C read, no Framework_IR connected")
             return
         index = self.ui.control_i2c_device.currentIndex()
         itemData: Six15_API.I2C_Info = self.ui.control_i2c_device.itemData(index)
@@ -516,7 +516,7 @@ class Window(QMainWindow):
             self.ui.control_i2c_address.setText(addr_str)
         addr = int(addr_str,  0)
 
-        result = self.oled_2k.sendI2C_CMD(0, itemData, addr, 0)
+        result = self.framework_ir.sendI2C_CMD(0, itemData, addr, 0)
         if (result.value < 256):
             ascii_value = ascii(int(result.value).to_bytes(2).decode("utf-8", errors="replace"))
         else:
@@ -532,13 +532,13 @@ class Window(QMainWindow):
             self.ui.control_i2c_address.setText(f"0x{addr+1:02X}")
 
     def control_i2c_write_clicked_no_err(self):
-        if (not self.oled_2k):
+        if (not self.framework_ir):
             return
         self.control_i2c_write_clicked()
 
     def control_i2c_write_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't I2C write, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't I2C write, no Framework_IR connected")
             return
         index = self.ui.control_i2c_device.currentIndex()
         itemData: Six15_API.I2C_Info = self.ui.control_i2c_device.itemData(index)
@@ -555,7 +555,7 @@ class Window(QMainWindow):
             self.ui.control_i2c_write_value.setText(value_str)
         value = int(value_str,  0)
 
-        self.oled_2k.sendI2C_CMD(1, itemData, addr, value)
+        self.framework_ir.sendI2C_CMD(1, itemData, addr, value)
         val_str = f"0x{value:02X} {value}"
         Logger.info(f"I2C Write {itemData.prettyName} addr:0x{addr:04X} val:{val_str}")
         if (self.ui.control_i2c_addr_auto_inc.isChecked()):
@@ -566,60 +566,60 @@ class Window(QMainWindow):
         self.ui.control_test_pattern_flat_label.setText(str(value))
         if (not self.ui.control_test_pattern_flat_slider.isEnabled()):
             return
-        if (not self.oled_2k):
-            Logger.error("Can't set test pattern level, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't set test pattern level, no Framework_IR connected")
             return
 
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x22, value)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x22, value)
 
     def send_I2C_TestPattern(self, pattern_sel):
-        if (not self.oled_2k):
-            Logger.error("Can't set test pattern, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't set test pattern, no Framework_IR connected")
             return
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x20, pattern_sel)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x20, pattern_sel)
 
         # if command is setting to 'none' also clear the linear ramp register
         if (pattern_sel == 1):
-            self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0xF1, 0x00)
+            self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0xF1, 0x00)
 
     def send_I2C_TestPattern_Color(self):
-        if (not self.oled_2k):
-            Logger.error("Can't set test pattern color, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't set test pattern color, no Framework_IR connected")
             return
         enable_r = self.ui.control_test_pattern_flat_r.isChecked()
         enable_g = self.ui.control_test_pattern_flat_g.isChecked()
         enable_b = self.ui.control_test_pattern_flat_b.isChecked()
         enable_rgb = (enable_r << 2) | (enable_g << 1) | (enable_b << 0)
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x21, enable_rgb)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x21, enable_rgb)
 
     def send_I2C_DispTestPatternBlack(self):
-        if (not self.oled_2k):
-            Logger.error("Can't set test pattern, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't set test pattern, no Framework_IR connected")
             return
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x0D)
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1E, 0x00)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x0D)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1E, 0x00)
 
     def send_I2C_DispTestPatternWhite(self):
-        if (not self.oled_2k):
-            Logger.error("Can't set test pattern, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't set test pattern, no Framework_IR connected")
             return
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x0D)
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1E, 0x77)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x0D)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1E, 0x77)
 
     def send_I2C_DispTestPatternNone(self):
-        if (not self.oled_2k):
-            Logger.error("Can't set test pattern, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't set test pattern, no Framework_IR connected")
             return
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x00)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["sxga_display_device"], 0x1A, 0x00)
 
     def send_I2C_DispTestPatternLinearRamp(self):
-        if (not self.oled_2k):
-            Logger.error("Can't set test pattern, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't set test pattern, no Framework_IR connected")
             return
         # Disable the FPGA pattern generation (set to NONE)
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x20, 1)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0x20, 1)
         # set register to enable the linear ramp
-        self.oled_2k.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0xF1, 0x01)
+        self.framework_ir.sendI2C_CMD(1, Six15_API.I2C_DEV_TO_BYTE["fpga"], 0xF1, 0x01)
 
     ##### End Helper Functions #####
 
@@ -647,8 +647,8 @@ class Window(QMainWindow):
             self.updateFlashEnableUiState()
 
     def update_stm32_button_clicked(self):
-        if (not self.oled_2k and not self.oled_2k_bootloader):
-            Logger.error("Can't flash STM32, no OLED_2k or STM32 bootloader connected")
+        if (not self.framework_ir and not self.framework_ir_bootloader):
+            Logger.error("Can't flash STM32, no Framework_IR or STM32 bootloader connected")
             return
         fw_file_name = str(self.ui.lineEdit_stm32_fw_file_name.text())
         if (not os.path.exists(fw_file_name)):
@@ -661,18 +661,18 @@ class Window(QMainWindow):
         Logger.info(f"STM32 Firmware Update Starting. File: {fw_file_name}")
         try:
             self.stopLogThread()
-            if (self.oled_2k != None):
-                self.oled_2k.rebootBootloader()
+            if (self.framework_ir != None):
+                self.framework_ir.rebootBootloader()
                 QApplication.processEvents()
-                time.sleep(OLED_2k.REBOOT_TO_DISCONNECT_DELAY_SECONDS)
+                time.sleep(Framework_IR.REBOOT_TO_DISCONNECT_DELAY_SECONDS)
 
-            if (self.oled_2k_bootloader == None):
+            if (self.framework_ir_bootloader == None):
                 delay_len = 0
-                while delay_len < OLED_2k.REBOOT_TO_BOOTLOADER_DELAY_SECONDS:
+                while delay_len < Framework_IR.REBOOT_TO_BOOTLOADER_DELAY_SECONDS:
                     time.sleep(0.1)
                     delay_len += 0.1
                     QApplication.processEvents()
-                    if (self.oled_2k_bootloader != None):
+                    if (self.framework_ir_bootloader != None):
                         break
 
             current_step_is_verify = None
@@ -706,8 +706,8 @@ class Window(QMainWindow):
         self.updateFlashEnableUiState()
 
     def update_fpga_button_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't flash FPGA, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't flash FPGA, no Framework_IR connected")
             return
         fw_file_name = str(self.ui.lineEdit_fpga_fw_file_name.text())
         if (not os.path.exists(fw_file_name)):
@@ -720,7 +720,7 @@ class Window(QMainWindow):
         self.updateFlashEnableUiState()
 
         def fpga_fw_status_callback(finished: bool, percent_complete: float):
-            if (not self.oled_2k):
+            if (not self.framework_ir):
                 return
             self.ui.progress_bar_fw.setEnabled(True)
             self.ui.progress_bar_fw.setValue(percent_complete)
@@ -730,12 +730,12 @@ class Window(QMainWindow):
                 self.any_update_state_in_progress = False
                 self.updateFlashEnableUiState()
 
-        self.firmwareUpdateThread = FPGA_FirmwareUpdateThread(fw_file_name, fpga_fw_status_callback, self.oled_2k)
+        self.firmwareUpdateThread = FPGA_FirmwareUpdateThread(fw_file_name, fpga_fw_status_callback, self.framework_ir)
         self.firmwareUpdateThread.start()
 
     def button_reboot_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't Reboot, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't Reboot, no Framework_IR connected")
             return
         Logger.info("Reboot clicked")
         self.doReboot()
@@ -746,16 +746,16 @@ class Window(QMainWindow):
             self.backgroundDeviceThread.requestInterruption()
             self.backgroundDeviceThread.wait()
         self.backgroundDeviceThread = None
-        self.oled_2k.reboot()
+        self.framework_ir.reboot()
         QApplication.processEvents()
         self.onDeviceConnectionChange(None)
-        time.sleep(OLED_2k.REBOOT_TO_DISCONNECT_DELAY_SECONDS)
+        time.sleep(Framework_IR.REBOOT_TO_DISCONNECT_DELAY_SECONDS)
         self.restartDeviceListenThread()
         self.startLogThread()
 
     def button_reboot_bootloader_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't Reboot to Bootloader, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't Reboot to Bootloader, no Framework_IR connected")
             return
         Logger.info("Reboot Bootloader clicked")
         self.stopLogThread()
@@ -763,32 +763,32 @@ class Window(QMainWindow):
             self.backgroundDeviceThread.requestInterruption()
             self.backgroundDeviceThread.wait()
         self.backgroundDeviceThread = None
-        self.oled_2k.rebootBootloader()
+        self.framework_ir.rebootBootloader()
         self.onDeviceConnectionChange(None)
         QApplication.processEvents()
-        time.sleep(OLED_2k.REBOOT_TO_DISCONNECT_DELAY_SECONDS)
+        time.sleep(Framework_IR.REBOOT_TO_DISCONNECT_DELAY_SECONDS)
         self.restartDeviceListenThread()
         self.startLogThread()
 
     def readAndApplyStateToUI(self, doRead: bool):
-        if doRead and self.oled_2k != None:
-            self.oled_display_state = self.oled_2k.queryOLED_DisplayState()
-            self.hdmi_state = self.oled_2k.queryHDMI_State()
-            self.edid_state = self.oled_2k.queryEDID_State()
+        if doRead and self.framework_ir != None:
+            self.framework_ir_display_state = self.framework_ir.queryOLED_DisplayState()
+            self.hdmi_state = self.framework_ir.queryHDMI_State()
+            self.edid_state = self.framework_ir.queryEDID_State()
 
         else:
-            self.oled_display_state = None
+            self.framework_ir_display_state = None
             self.hdmi_state = None
             self.edid_state = None
 
-        Window.applyOLED_2k_StateToUi(self.ui, self.oled_display_state)
+        Window.applyFramework_IR_StateToUi(self.ui, self.framework_ir_display_state)
         Window.applyHDMI_StateToUi(self.ui, self.hdmi_state)
         Window.applyEDID_StateToUI(self.ui, self.edid_state)
 
 
     def read_from_hardware_clicked(self):
-        if (not self.oled_2k):
-            Logger.error("Can't Read from hardware, no OLED_2k connected")
+        if (not self.framework_ir):
+            Logger.error("Can't Read from hardware, no Framework_IR connected")
             return
 
         self.readAndApplyStateToUI(False)
@@ -802,18 +802,18 @@ class Window(QMainWindow):
 
 
 def run_cli() -> int:
-    args = OLED_2k.parseForArgs()
+    args = Framework_IR.parseForArgs()
 
-    oled_2k_finder = OLED_2k_Finder()
-    device = oled_2k_finder.getOLED_2k()
+    framework_ir_finder = Framework_IR_Finder()
+    device = framework_ir_finder.getFramework_IR()
 
     if (device == None):
-        ret = OLED_2k.handleArgsNoDevice(args)
+        ret = Framework_IR.handleArgsNoDevice(args)
         if (ret):
             Logger.warn('No Device found, exiting.')
         return ret
 
-    ret = OLED_2k.handleArgs(device, args)
+    ret = Framework_IR.handleArgs(device, args)
     device.close()
     return ret
 

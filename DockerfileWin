@@ -29,6 +29,6 @@ RUN adduser --disabled-password --gecos "" --uid $user_id six15
 USER six15
 
 
-WORKDIR /home/six15/594_gui
+WORKDIR /home/six15/framework_ir_gui
 
-CMD . /opt/mkuserwineprefix ; wine pyinstaller.exe --upx-exclude=python3.dll --upx-exclude=python312.dll --onefile --noconsole --distpath out --icon src/icon.ico --add-binary "src\libusb-1.0.dll;." --add-data "src\icon.ico;." --add-data "C:\Python\Lib\site-packages\PySide6\plugins\platforms:PySide6\plugins\platforms" src/594_gui.py
+CMD . /opt/mkuserwineprefix ; wine pyinstaller.exe --upx-exclude=python3.dll --upx-exclude=python312.dll --onefile --noconsole --distpath out --icon src/icon.ico --add-binary "src\libusb-1.0.dll;." --add-data "src\icon.ico;." --add-data "C:\Python\Lib\site-packages\PySide6\plugins\platforms:PySide6\plugins\platforms" src/framework_ir_gui.py

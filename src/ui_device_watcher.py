@@ -3,64 +3,64 @@ from pyclbr import Function
 import time
 from typing import Callable, Optional
 from PySide6.QtCore import QThread, Signal, Slot
-from oled_2k_finder import OLED_2k_Finder
-from oled_2k import OLED_2k
+from framework_ir_finder import Framework_IR_Finder
+from framework_ir import Framework_IR
 import usb.core
 import thread_debug as ThreadDebug
 from lib_six15_api.logger import Logger
 
 
-class OLED_2k_DeviceListenThread(QThread):
-    oled_2k: Optional[OLED_2k]
+class Framework_IR_DeviceListenThread(QThread):
+    framework_ir: Optional[Framework_IR]
 
     def __init__(self, callback) -> None:
         super().__init__()
         self.callback = callback
-        self.oled_2k = None
+        self.framework_ir = None
         self.finished.connect(self.deviceFound)
 
     def run(self):
         ThreadDebug.debug_this_thread()
-        finder = OLED_2k_Finder()
-        while self.oled_2k == None and not self.isInterruptionRequested():
+        finder = Framework_IR_Finder()
+        while self.framework_ir == None and not self.isInterruptionRequested():
             # Logger.info("Waiting for device connect")
             try:
-                self.oled_2k = finder.getOLED_2k()
-                if (self.oled_2k == None):
+                self.framework_ir = finder.getFramework_IR()
+                if (self.framework_ir == None):
                     time.sleep(0.5)  # value is in seconds
 
             except Exception as e:
-                if (self.oled_2k == None and not self.isInterruptionRequested()):
-                    Logger.error(f"Error in OLED_2kDeviceListenThread: {e}")
+                if (self.framework_ir == None and not self.isInterruptionRequested()):
+                    Logger.error(f"Error in Framework_IRDeviceListenThread: {e}")
                     time.sleep(0.5)
         # Logger.info("Exiting:{}".format(self.isInterruptionRequested()))
 
     def deviceFound(self):
-        self.callback(self.oled_2k)
+        self.callback(self.framework_ir)
 
 
-class OLED_2k_DeviceDisconnectThread(QThread):
-    oled_2k: OLED_2k
+class Framework_IR_DeviceDisconnectThread(QThread):
+    framework_ir: Framework_IR
 
-    def __init__(self, callback: Callable[[OLED_2k], None], oled_2k: OLED_2k):
+    def __init__(self, callback: Callable[[Framework_IR], None], framework_ir: Framework_IR):
         super().__init__()
         self.callback = callback
-        self.oled_2k = oled_2k
+        self.framework_ir = framework_ir
         self.finished.connect(self.deviceDisconnected)
 
     def run(self):
         ThreadDebug.debug_this_thread()
-        while self.oled_2k != None and not self.isInterruptionRequested():
+        while self.framework_ir != None and not self.isInterruptionRequested():
             # Logger.info("Waiting for device disconnect")
             try:
-                self.oled_2k = self.oled_2k if self.oled_2k.isConnected() else None
-                if (self.oled_2k != None):
+                self.framework_ir = self.framework_ir if self.framework_ir.isConnected() else None
+                if (self.framework_ir != None):
                     time.sleep(0.5)  # value is in seconds
             except Exception as e:
-                if (self.oled_2k != None and not self.isInterruptionRequested()):
-                    Logger.error(f"Error in OLED_2k_DeviceDisconnectThread: {e}")
+                if (self.framework_ir != None and not self.isInterruptionRequested()):
+                    Logger.error(f"Error in Framework_IR_DeviceDisconnectThread: {e}")
                     time.sleep(0.5)
         # Logger.info("Exiting:{}".format(self.isInterruptionRequested()))
 
     def deviceDisconnected(self):
-        self.callback(self.oled_2k)
+        self.callback(self.framework_ir)

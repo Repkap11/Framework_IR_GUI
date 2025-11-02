@@ -2,23 +2,23 @@ from typing import Callable, Optional
 from PySide6.QtCore import QThread, Signal, Slot
 import thread_debug as ThreadDebug
 from lib_six15_api.logger import Logger
-from oled_2k import OLED_2k
+from framework_ir import Framework_IR
 import traceback
 
 
 class FPGA_FirmwareUpdateThread(QThread):
     status_callback = Signal(bool, int)
 
-    def __init__(self, file_name: str, callback: Callable[[bool, int], None], oled_2k: OLED_2k):
+    def __init__(self, file_name: str, callback: Callable[[bool, int], None], framework_ir: Framework_IR):
         super().__init__()
         self.file_name = file_name
         self.status_callback.connect(callback)
-        self.oled_2k = oled_2k
+        self.framework_ir = framework_ir
 
     def run(self):
         ThreadDebug.debug_this_thread()
         try:
-            ret = self.oled_2k.flash_FPGA_FW(self.file_name, self.status_callback.emit)
+            ret = self.framework_ir.flash_FPGA_FW(self.file_name, self.status_callback.emit)
             if ret == 0:
                 Logger.info("FPGA Firmware Update Success")
             else:

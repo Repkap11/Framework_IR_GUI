@@ -10,9 +10,9 @@ import argparse
 import traceback
 import time
 from generated import app_version as AppVersion
-import oled_2k_six15_api as Six15_API
+import framework_ir_six15_api as Six15_API
 from lib_six15_api.six15_api_backend import Six15_API_Backend
-from oled_2k_six15_api import OLED_2k_Six15_API
+from framework_ir_six15_api import Framework_IR_Six15_API
 from lib_six15_api.logger import Logger
 import lib_six15_api.lattice_fpga_updater as Lattice_FPGA_Updater
 import lib_six15_api.stm32_firmware_updater as STM32_Firmware_Update
@@ -20,7 +20,7 @@ import lib_six15_api.stm32_firmware_updater as STM32_Firmware_Update
 NUM_CHARGER_BAYS = 4
 
 
-class OLED_2k(OLED_2k_Six15_API):
+class Framework_IR(Framework_IR_Six15_API):
 
     REBOOT_TO_BOOTLOADER_DELAY_SECONDS = 2
     REBOOT_TO_DISCONNECT_DELAY_SECONDS = 0.5
@@ -63,7 +63,7 @@ class OLED_2k(OLED_2k_Six15_API):
         return self.sendSimpleCMD(Six15_API.CMD.DEBUG_ACTION, struct.pack("<B", index))
 
     def parseForArgs():
-        parser = argparse.ArgumentParser(description='OLED 2k CLI')
+        parser = argparse.ArgumentParser(description='Framework IR CLI')
         sub_parsers = parser.add_subparsers(dest="sub_command", required=True)
 
         # Version
@@ -88,7 +88,7 @@ class OLED_2k(OLED_2k_Six15_API):
         flash_fpga_fw_parser.add_argument("file_name")
 
         # Charger State
-        sub_parsers.add_parser("oled_display_state", help="Dump information about the OLEDWorks 2k display")
+        sub_parsers.add_parser("framework_ir_display_state", help="Dump information about the Framework_IR 2k display")
 
         args = parser.parse_args()
         return args
@@ -114,10 +114,10 @@ class OLED_2k(OLED_2k_Six15_API):
             Logger.info(f"GUI/CLI Version: {AppVersion.GIT_VERSION}")
             return 0
         elif (args.sub_command == "flash_stm32_fw"):
-            OLED_2k.flashAndVerifySTM32InBootloader(args.file_name)
+            Framework_IR.flashAndVerifySTM32InBootloader(args.file_name)
             return 0
         elif (args.sub_command == "verify_stm32_fw"):
-            OLED_2k.verifySTM32InBootloader(args.file_name)
+            Framework_IR.verifySTM32InBootloader(args.file_name)
             return 0
         return -1
 
@@ -138,24 +138,24 @@ class OLED_2k(OLED_2k_Six15_API):
             self.reboot()
         elif (args.sub_command == "flash_stm32_fw"):
             self.rebootBootloader()
-            time.sleep(OLED_2k.REBOOT_TO_BOOTLOADER_DELAY_SECONDS)
+            time.sleep(Framework_IR.REBOOT_TO_BOOTLOADER_DELAY_SECONDS)
             Logger.info("")
-            OLED_2k.flashAndVerifySTM32InBootloader(args.file_name)
+            Framework_IR.flashAndVerifySTM32InBootloader(args.file_name)
         elif (args.sub_command == "verify_stm32_fw"):
             self.rebootBootloader()
-            time.sleep(OLED_2k.REBOOT_TO_BOOTLOADER_DELAY_SECONDS)
+            time.sleep(Framework_IR.REBOOT_TO_BOOTLOADER_DELAY_SECONDS)
             Logger.info("")
-            OLED_2k.verifySTM32InBootloader(args.file_name)
-        elif (args.sub_command == "oled_display_state"):
-            oled_display_state: Six15_API.Response.OLED_DisplayState = self.queryOLED_DisplayState()
-            Logger.info(f"temp_value: {oled_display_state.temp_value}")
+            Framework_IR.verifySTM32InBootloader(args.file_name)
+        elif (args.sub_command == "framework_ir_display_state"):
+            framework_ir_display_state: Six15_API.Response.OLED_DisplayState = self.queryOLED_DisplayState()
+            Logger.info(f"temp_value: {framework_ir_display_state.temp_value}")
             return -1
         return 0
 
 
 def main():
-    OLED_2k_Gui = __import__("594_gui")
-    sys.exit(OLED_2k_Gui.run_cli())
+    Framework_IR_Gui = __import__("framework_ir_gui")
+    sys.exit(Framework_IR_Gui.run_cli())
 
 
 if __name__ == "__main__":

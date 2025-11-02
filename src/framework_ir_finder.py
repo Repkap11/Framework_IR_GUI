@@ -1,7 +1,7 @@
-import oled_2k_six15_api as Six15_API
+import framework_ir_six15_api as Six15_API
 import platform
 import time
-from oled_2k import OLED_2k
+from framework_ir import Framework_IR
 from lib_six15_api.six15_api_backend import Six15_API_Backend
 from lib_six15_api.six15_api_backend_hid import Six15_API_Backend_HID
 from lib_six15_api.six15_api_backend_ftdi import Six15_API_Backend_FTDI
@@ -17,13 +17,13 @@ from lib_six15_api.logger import Logger
 hasSleptOnce = False
 
 
-class OLED_2k_Finder(object):
+class Framework_IR_Finder(object):
 
     def __init__(self) -> None:
         super().__init__()
 
-    def getOLED_2k(self) -> Optional[OLED_2k]:
-        backend = self.getOLED_2k_HID()
+    def getFramework_IR(self) -> Optional[Framework_IR]:
+        backend = self.getFramework_IR_HID()
         if (backend == None):
             return None
 
@@ -33,11 +33,11 @@ class OLED_2k_Finder(object):
             # For FTDI, finding an FTDI chip doesn't mean we have a connected device
             backend.close()
             return None
-        charger = OLED_2k(backend)
+        charger = Framework_IR(backend)
         return charger
 
-    def getOLED_2k_HID(self) -> Optional[Six15_API_Backend_HID]:
-        hid_device, hid_path = Six15_API_Backend_HID.findDevice(Six15_API.VID_SIX15, Six15_API.PID_594)
+    def getFramework_IR_HID(self) -> Optional[Six15_API_Backend_HID]:
+        hid_device, hid_path = Six15_API_Backend_HID.findDevice(Six15_API.VID_SIX15, Six15_API.PID_FRAMEWORK_IR)
         if (hid_device == None or hid_path == None):
             return None
 
@@ -48,4 +48,4 @@ class OLED_2k_Finder(object):
                 time.sleep(1)  # Windows takes forever at starting the HID driver.
                 hasSleptOnce = True
 
-        return Six15_API_Backend_HID(hid_device, hid_path, Six15_API.VID_SIX15, Six15_API.PID_594)
+        return Six15_API_Backend_HID(hid_device, hid_path, Six15_API.VID_SIX15, Six15_API.PID_FRAMEWORK_IR)

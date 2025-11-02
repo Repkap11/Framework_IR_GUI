@@ -3,7 +3,7 @@ set -e
 
 make clean
 
-PROJECT_NAME=594_gui
+PROJECT_NAME=framework_ir_gui
 
 GITLAB_USER_NAME="gitlab-ci-token"
 # CI_JOB_TOKEN set from gitlab-ci build env

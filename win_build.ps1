@@ -4,7 +4,7 @@ python -m venv .venv
 pip3 install -r requirements.txt
 remove-item -path out -Force -Recurse -ErrorAction SilentlyContinue
 remove-item -path src\generated -Force -Recurse -ErrorAction SilentlyContinue
-remove-item -path "594_gui_$(git describe --abbrev=8 --dirty --tags --long).exe" -Force -ErrorAction SilentlyContinue
+remove-item -path "framework_ir_gui_$(git describe --abbrev=8 --dirty --tags --long).exe" -Force -ErrorAction SilentlyContinue
 mkdir out
 mkdir src\generated
 
@@ -17,9 +17,9 @@ Write-Output "GIT_VERSION = `"$(git describe --abbrev=8 --dirty --tags --long)`"
 # EXE's built with this script are never released part numbers. Use the docker based windows build instead.
 Write-Output "PART_NUMBER_VALID = False" | out-file src\generated\app_version.py -encoding utf8 -Append
 
-pyinstaller.exe --upx-exclude=python3.dll --upx-exclude=python312.dll --onefile --noconsole --distpath out --icon src\icon.ico --add-binary "src\libusb-1.0.dll;." --add-data "src\icon.ico;." src\594_gui.py
+pyinstaller.exe --upx-exclude=python3.dll --upx-exclude=python312.dll --onefile --noconsole --distpath out --icon src\icon.ico --add-binary "src\libusb-1.0.dll;." --add-data "src\icon.ico;." src\framework_ir_gui.py
 
 
-# Output file is .\out\594_gui.exe
-Move-Item .\out\594_gui.exe "594_gui_$(git describe --abbrev=8 --dirty --tags --long).exe"
+# Output file is .\out\framework_ir_gui.exe
+Move-Item .\out\framework_ir_gui.exe "framework_ir_gui_$(git describe --abbrev=8 --dirty --tags --long).exe"
 exit $LASTEXITCODE

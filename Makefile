@@ -1,7 +1,7 @@
 ALL_UI_PY_FILES := $(patsubst src/qt_ui/%.ui,src/generated/%_ui.py, $(wildcard src/qt_ui/*.ui))
 
-PROJECT_NAME := 594_gui
-MAIN_PY_FILE_NAME := 594_gui
+PROJECT_NAME := framework_ir_gui
+MAIN_PY_FILE_NAME := framework_ir_gui
 
 ## Start Phony Targets
 all: out/${PROJECT_NAME}

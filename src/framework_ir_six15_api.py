@@ -3,11 +3,11 @@ import struct
 from typing import Dict, Any, Tuple, Optional, Callable
 from lib_six15_api.six15_api import *
 
-# See six15_api.h in the 594_display repository
+# See six15_api.h in the FRAMEWORK_IR_display repository
 # for the other side of this communication protocol.
 
 VID_SIX15 = 0x2dc4  # 11716
-PID_594 = 0x0252  # 594
+PID_FRAMEWORK_IR = 0x0252  # FRAMEWORK_IR
 
 
 class I2C_Info:
@@ -17,9 +17,9 @@ class I2C_Info:
 
 
 I2C_DEV_TO_BYTE: Dict[str, I2C_Info] = {
-    "oled_display": I2C_Info(0, "OLED (Display)"),
-    "oled_eeprom": I2C_Info(1, "OLED (EEPROM)"),
-    "oled_io": I2C_Info(2, "OLED (IO)"),
+    "framework_ir_display": I2C_Info(0, "OLED (Display)"),
+    "framework_ir_eeprom": I2C_Info(1, "OLED (EEPROM)"),
+    "framework_ir_io": I2C_Info(2, "OLED (IO)"),
     "fpga": I2C_Info(3, "FPGA"),
     "hdmi_io": I2C_Info(4, "HDMI (IO)"),
     "hdmi_hdmi": I2C_Info(5, "HDMI (HDMI)"),
@@ -236,7 +236,7 @@ class CMD:
         response = Response_Default
 
 
-class OLED_2k_Six15_API(Six15_API):
+class Framework_IR_Six15_API(Six15_API):
 
     def __init__(self, backend: Six15_API_Backend, fake: bool, *args):
         super().__init__(backend, fake, *args)

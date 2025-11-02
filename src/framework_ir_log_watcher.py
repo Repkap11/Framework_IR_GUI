@@ -3,33 +3,33 @@ from typing import Callable, Optional
 from PySide6.QtCore import QThread, Signal, Slot
 import thread_debug
 from lib_six15_api.logger import Logger
-from oled_2k import OLED_2k
+from framework_ir import Framework_IR
 
 
-class OLED_2k_LogWatcher(QThread):
-    oled_2k: Optional[OLED_2k]
+class Framework_IR_LogWatcher(QThread):
+    framework_ir: Optional[Framework_IR]
 
     def __init__(self) -> None:
         super().__init__()
-        self.oled_2k = None
+        self.framework_ir = None
 
-    def set_OLED_2k(self, oled_2k: OLED_2k):
-        self.oled_2k = oled_2k
+    def set_Framework_IR(self, framework_ir: Framework_IR):
+        self.framework_ir = framework_ir
 
     def run(self):
         thread_debug.debug_this_thread()
 
         while (not self.isInterruptionRequested()):
             try:
-                local_oled_2k: Optional[OLED_2k] = self.oled_2k
-                if (local_oled_2k == None):
+                local_framework_ir: Optional[Framework_IR] = self.framework_ir
+                if (local_framework_ir == None):
                     time.sleep(0.5)
                     continue
-                # local_oled_2k.isConnected()
+                # local_framework_ir.isConnected()
 
                 def lineFunc(line: str):
                     Logger.log_prefixed(line, "  ")
-                local_oled_2k.readLog(lineFunc, self.isInterruptionRequested)
+                local_framework_ir.readLog(lineFunc, self.isInterruptionRequested)
                 time.sleep(0.5)
             except Exception as e:
                 Logger.error(f"Log Reading Err:{e}")

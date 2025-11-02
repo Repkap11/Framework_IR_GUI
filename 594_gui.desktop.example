@@ -3,8 +3,8 @@ Encoding=UTF-8
 Version=1.0
 Type=Application
 Terminal=false
-Exec=/home/prepka/bin/594_gui
-Name=OLEDWorks 2k GUI
-Icon=/home/prepka/Software/Six15/594/594_gui/src/icon.ico
+Exec=/home/prepka/bin/framework_ir_gui
+Name=Framework_IR 2k GUI
+Icon=/home/prepka/Software/Six15/FRAMEWORK_IR/framework_ir_gui/src/icon.ico
 
-# cp -r 594_gui.desktop.example ~/.local/share/applications/594_gui.desktop
+# cp -r framework_ir_gui.desktop.example ~/.local/share/applications/framework_ir_gui.desktop

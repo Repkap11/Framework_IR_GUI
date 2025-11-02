@@ -24,6 +24,6 @@ RUN adduser --disabled-password --gecos "" --uid $user_id six15
 USER six15
 
 
-WORKDIR /home/six15/594_gui
+WORKDIR /home/six15/framework_ir_gui
 
-CMD pyinstaller --onefile --distpath out --add-data "src/icon.ico:." src/594_gui.py
+CMD pyinstaller --onefile --distpath out --add-data "src/icon.ico:." src/framework_ir_gui.py
