@@ -164,7 +164,7 @@ class Window(QMainWindow):
             self.backgroundLogThread: QThread = Serial_LogWatcher(Six15_API.VID_SIX15, Six15_API.PID_FRAMEWORK_IR)
         else:
             self.backgroundLogThread: QThread = Framework_IR_LogWatcher()
-        # self.backgroundLogThread.start()
+        self.backgroundLogThread.start()
 
     def stopLogThread(self):
         if (self.backgroundLogThread):
@@ -294,6 +294,7 @@ class Window(QMainWindow):
         ui.control_reboot.setEnabled(enabled)
         ui.control_reboot_bootloader.setEnabled(enabled)
 
+        ui.button_power.setEnabled(enabled)
         ui.button_up.setEnabled(enabled)
         ui.button_down.setEnabled(enabled)
         ui.button_left.setEnabled(enabled)
