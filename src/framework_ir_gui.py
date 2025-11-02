@@ -10,7 +10,7 @@ import usb.core
 from typing import Optional
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QMessageBox, QSizePolicy, QSpacerItem, QGridLayout, QFileDialog, QLabel, QGroupBox, QFrame, QPushButton
 from PySide6.QtCore import QThread, QSettings, QTimer, Qt, Signal
-from PySide6.QtGui import QDragMoveEvent, QDropEvent, QPaintEvent, QCloseEvent, QColor, QIcon, QColorConstants
+from PySide6.QtGui import QDragMoveEvent, QDropEvent, QPaintEvent, QCloseEvent, QColor, QIcon, QColorConstants, QCursor
 from generated import main_window_ui as Main_Window_UI
 from generated import app_version as AppVersion
 from ui_device_watcher import Framework_IR_DeviceListenThread, Framework_IR_DeviceDisconnectThread
@@ -62,6 +62,8 @@ class Window(QMainWindow):
         self.logger.makeDefault(True)
         self.ui.setupUi(main_window_content)
 
+        self.center_on_cursor_screen()
+
         self.setInitialState()
         self.hookEvents()
         self.setCentralWidget(main_window_content)
@@ -71,6 +73,34 @@ class Window(QMainWindow):
         self.backgroundBootloaderThread = BootloaderListenThread(self.onBootloaderConnectionChange)
         self.backgroundBootloaderThread.start()
         self.initial_show_called = False
+
+    def center_on_cursor_screen(self):
+        # Get the application instance
+        app = QApplication.instance()
+
+        # 1. Determine the screen based on the current mouse cursor position
+        current_cursor_pos = QCursor.pos()
+        screen = app.screenAt(current_cursor_pos)
+
+        # Fallback: If screenAt() returns None (shouldn't happen often), use the primary screen
+        if not screen:
+            screen = app.primaryScreen()
+
+        # 2. Get the geometry of the available space on that screen
+        screen_geometry = screen.availableGeometry()
+
+        # 3. Get the geometry of the window itself
+        window_geometry = self.frameGeometry()
+
+        # 4. Calculate the center point of the target screen
+        center_point = screen_geometry.center()
+
+        # 5. Move the window's center to the screen's center point
+        window_geometry.moveCenter(center_point)
+
+        # 6. Apply the new top-left position to the window
+        self.move(window_geometry.topLeft())
+
 
     @staticmethod
     def validateDragEvent(event: QDragMoveEvent | QDropEvent) -> Optional[str]:
