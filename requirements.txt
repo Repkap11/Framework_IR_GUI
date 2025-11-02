@@ -6,7 +6,7 @@ pyusb
 pyserial
 pillow
 
-lib_six15_api @ git+ssh://git@gitlab.com/six15/509/lib_six15_api.git@0.5
+# lib_six15_api @ git+ssh://git@gitlab.com/six15/509/lib_six15_api.git@0.5
 # -e ../../509/lib_six15_api # Develop locally with the library automatically updating without "pip install" again.
 
 # debugpy #Don't add this, it WILL break pyinstaller, but is useful for debugging
