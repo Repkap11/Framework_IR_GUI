@@ -135,7 +135,7 @@ class Window(QMainWindow):
             self.backgroundLogThread: QThread = Serial_LogWatcher(Six15_API.VID_SIX15, Six15_API.PID_FRAMEWORK_IR)
         else:
             self.backgroundLogThread: QThread = Framework_IR_LogWatcher()
-        self.backgroundLogThread.start()
+        # self.backgroundLogThread.start()
 
     def stopLogThread(self):
         if (self.backgroundLogThread):
@@ -265,8 +265,11 @@ class Window(QMainWindow):
         ui.control_reboot.setEnabled(enabled)
         ui.control_reboot_bootloader.setEnabled(enabled)
 
-        ui.control_brightness_up.setEnabled(enabled)
-        ui.control_brightness_down.setEnabled(enabled)
+        ui.button_up.setEnabled(enabled)
+        ui.button_down.setEnabled(enabled)
+        ui.button_left.setEnabled(enabled)
+        ui.button_right.setEnabled(enabled)
+        ui.button_select.setEnabled(enabled)
 
     def clearStateFromDisconnect(self) -> None:
         if (self.framework_ir != None):
@@ -327,8 +330,11 @@ class Window(QMainWindow):
         self.ui.control_reboot.clicked.connect(self.button_reboot_clicked)
         self.ui.control_reboot_bootloader.clicked.connect(self.button_reboot_bootloader_clicked)
 
-        self.ui.control_brightness_up.clicked.connect(self.brightness_up_clicked)
-        self.ui.control_brightness_down.clicked.connect(self.brightness_down_clicked)
+        self.ui.button_up.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
+        self.ui.button_down.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
+        self.ui.button_left.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
+        self.ui.button_right.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
+        self.ui.button_select.clicked.connect(lambda :self.ir_button_clicked(0x33a3a))
 
     def filename_stm32_fw_edit_finished(self):
         self.updateFlashEnableUiState()
@@ -336,19 +342,11 @@ class Window(QMainWindow):
     def filename_fpga_fw_edit_finished(self):
         self.updateFlashEnableUiState()
 
-    def brightness_up_clicked(self):
+    def ir_button_clicked(self, hex_code):
         if (not self.framework_ir):
-            Logger.error("Can't increase brightness, no Framework_IR connected")
+            Logger.error("Can't send button click, no Framework_IR connected")
             return
-        brightness_result = self.framework_ir.sendAdjustBrightness(1)
-        Logger.info(f"Increased brightness to:{brightness_result.brightness}")
-
-    def brightness_down_clicked(self):
-        if (not self.framework_ir):
-            Logger.error("Can't decrease brightness, no Framework_IR connected")
-            return
-        brightness_result = self.framework_ir.sendAdjustBrightness(-1)
-        Logger.info(f"Decreased brightness to:{brightness_result.brightness}")
+        self.framework_ir.send_IR(1)
 
     ##### End Helper Functions #####
 

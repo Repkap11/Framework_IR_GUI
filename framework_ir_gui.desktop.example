@@ -3,8 +3,8 @@ Encoding=UTF-8
 Version=1.0
 Type=Application
 Terminal=false
-Exec=/home/prepka/bin/framework_ir_gui
+Exec=/home/paul/Electronics/Framework_IR_GUI/out/framework_ir_gui
 Name=Framework_IR GUI
-Icon=/home/prepka/Software/Six15/FRAMEWORK_IR/framework_ir_gui/src/icon.ico
+Icon=/home/paul/Electronics/Framework_IR_GUI/src/icon.ico
 
 # cp -r framework_ir_gui.desktop.example ~/.local/share/applications/framework_ir_gui.desktop
