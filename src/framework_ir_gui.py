@@ -303,6 +303,7 @@ class Window(QMainWindow):
         ui.button_vol_p.setEnabled(enabled)
         ui.button_vol_m.setEnabled(enabled)
         ui.button_mute.setEnabled(enabled)
+        ui.button_back.setEnabled(enabled)
 
     def clearStateFromDisconnect(self) -> None:
         if (self.framework_ir != None):
@@ -349,8 +350,8 @@ class Window(QMainWindow):
         self.ui.control_reboot.clicked.connect(self.button_reboot_clicked)
         self.ui.control_reboot_bootloader.clicked.connect(self.button_reboot_bootloader_clicked)
 
-        # self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E040BF))# power toggle
-        self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E06798))# my remote
+        # self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E040BF))# according to doc
+        self.ui.button_power.clicked.connect(lambda :self.ir_button_clicked(0xE0E06798))# works with my remote
 
         self.ui.button_up.clicked.connect(lambda :self.ir_button_clicked(0xE0E006F9))
         self.ui.button_down.clicked.connect(lambda :self.ir_button_clicked(0xE0E08679))
@@ -360,6 +361,7 @@ class Window(QMainWindow):
         self.ui.button_vol_m.clicked.connect(lambda :self.ir_button_clicked(0xE0E0D02F))
         self.ui.button_vol_p.clicked.connect(lambda :self.ir_button_clicked(0xE0E0E01F))
         self.ui.button_mute.clicked.connect(lambda :self.ir_button_clicked(0xE0E0F00F))
+        self.ui.button_back.clicked.connect(lambda :self.ir_button_clicked(0xE0E01AE5))# aka return
 
     def filename_stm32_fw_edit_finished(self):
         self.updateFlashEnableUiState()
